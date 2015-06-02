@@ -7,3 +7,6 @@
 meteor-platform
 autopublish
 insecure
+jquery
+bootstrap
+jquery-ui
