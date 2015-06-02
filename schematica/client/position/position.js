@@ -2,17 +2,21 @@ Template.position.events ({
   'click .icon-tasks': function (evt, tmpl) {
     evt.stopPropagation();
     evt.preventDefault();
+    // reset id as one being eddited.
     Session.set('editing_tablename',this._id);
   },
   'click .addfield':function(evt,tmpl){
       evt.preventDefault();
       evt.stopPropagation();
+      // need compiling and edit code
     DBfields.insert({name:'New Field',tableid:this._id});
   },
-  'click .close':function(evt,tmpl){
+  'click .close':function(evt,tmpl) {
       Positions.remove({_id:this._id});
   },
   'keyup .tablename':function(evt,tmpl){
+    // input tablname and type evaluate if return key, then update name on template
+    // then need to reset table null value
     evt.stopPropagation();
     evt.preventDefault();
     if(evt.which === 13){
