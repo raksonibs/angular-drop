@@ -1,0 +1,207 @@
+<html ng-app="dragTest">
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular-sanitize.min.js"></script>
+    <style type="text/css" media="screen">
+     .cursor {
+        cursor: move;
+      }
+
+      .read-out {
+        margin-top: 30px;
+      }
+
+      .dragging {
+        margin: -1px;
+        border: 1px dashed #ccc;
+      }
+
+      .drop-area {
+        border: 2px dashed #ccc;
+        width: 100%;
+        min-height: 200px;
+      }
+    </style>
+  </head>
+  <body class="container">
+    
+    <div ng-controller="dragCtrlr">
+      
+      <div draggable template="/tmpls/myTemplate" id="draggable-1" group="content">This is my content, with simple template. I don't revert.</div>
+      
+      <draggable options="{addClasses: false,cursor: 'move',revert: true}" template="/tmpls/myAltTemplate" id="draggable-2" group="content" placeholder="true">Draggable 2's <span class="text-info">content here</span>, same directive using an "Alternate" template.</draggable>
+      
+      <draggable options="{opacity: .5,revert: true}" placeholder="true">Draggable 3's content!!<ul><li>I'm not grouped with the others</li><li>have no ID</li><li>and use the default template</li></ul></draggable>
+      
+      <br>
+      <h4>Drop Area</h4>
+      <div droppable options="{addClasses: false}" class="drop-area"></div>
+      
+      <div class="read-out">
+        <span class="text-info"><strong>Draggable ID</strong></span>: {{obj.id}}<br><br>
+        <span class="text-info"><strong>Content</strong></span>: <span ng-bind-html="obj.content"></span><br><br>
+        <span class="text-info"><strong>Actual Content</strong></span>: {{obj.content}}<br><br>
+      </div>
+    </div>
+
+    <script>
+      angular.module('dragTest',['ngSanitize'])
+
+.run(['$templateCache',function($templateCache){
+  
+  // default
+  $templateCache.put('/tmpls/draggable-default','<div class="cursor" ng-transclude></div>');
+  
+  // template
+  $templateCache.put('/tmpls/myTemplate','<div class="well cursor {{obj.group}}" ng-transclude></div>');
+  
+  // alternate template
+  $templateCache.put('/tmpls/myAltTemplate','<div class="panel panel-primary cursor {{obj.group}}"><div class="panel-heading"><h3 class="panel-title">Drag Me</h3></div><div class="panel-body" ng-transclude></div></div>');
+  
+  $templateCache.put('/tmpls/droppable-default','<div><div class="content" ng-repeat="dropped in obj.dropped" ng-bind-html="dropped.content"></div></div>');
+  
+}]) // end run
+
+.controller('dragCtrlr',['$scope',function($scope){
+  // variables
+  var obj = {
+    id: null,
+    content: null,
+    group: null
+  };
+  
+  $scope.obj = angular.copy(obj);
+  
+  // listeners
+  
+  $scope.$on('drag.started',function(evt,data){
+    if(angular.isDefined(data.obj))
+      $scope.obj = data.obj;
+  });
+  
+  $scope.$on('drag.stopped',function(evt,data){
+    // $scope.obj = angular.copy(obj); // reset controller's object
+  });
+  
+  $scope.$on('data.clean',function(evt,data){
+    $scope.obj = angular.copy(obj); // reset controller's object
+  });
+}]) // end controller(dragCtrlr)
+
+.directive('draggable',['$compile',function($compile){
+  return {
+    restrict: 'AE',
+    transclude: true,
+    replace: true,
+    scope: {},
+    templateUrl: function(el,attrs){
+      return (angular.isDefined(attrs.template)) ? attrs.template : '/tmpls/draggable-default';
+    },
+    link: function(scope,el,attrs,ctrlr,transFn){
+        // object properties, will be passed through jQuery UI events
+        scope.obj = {
+          id: null,
+          content: '',
+          group: null
+        };
+      
+        scope.placeholder = false;
+      
+      
+        // get the content from the transclusion function
+        transFn(scope,function(clone,innerScope){
+          // need to compile the content to make sure we get any HTML that was transcluded
+          var dummy = angular.element('<div></div>');
+          dummy.append($compile(clone)(innerScope));
+          scope.obj.content = dummy.html();
+          dummy = null;
+          
+          // remove ng-scope spans/classes & empty class attributes added by angular to get true content
+          scope.obj.content = scope.obj.content.replace(/<span class="ng\-scope">([^<]+)<\/span>/gi,"$1");
+          scope.obj.content = scope.obj.content.replace(/\s*ng\-scope\s*/gi,'');
+          scope.obj.content = scope.obj.content.replace(/\s*class\=\"\"\s*/gi,'');
+        });
+        
+        // save the object's id if there is one
+        if(angular.isDefined(attrs.id))
+          scope.obj.id = attrs.id;
+        
+        if(angular.isDefined(attrs.placeholder))
+          scope.placeholder = scope.$eval(attrs.placeholder);
+      
+        // setup the options object to pass to jQuery UI's draggable method
+        var opts = (angular.isDefined(attrs.options)) ? scope.$eval(attrs.options) : {};
+        
+        // assign the object's group if any
+        if(angular.isDefined(attrs.group)){
+          scope.obj.group = attrs.group;
+          opts.stack = '.' + attrs.group;
+        }
+      
+        var evts = {
+          start: function(evt,ui){
+            if(scope.placeholder)
+              ui.helper.wrap('<div class="dragging"></div>');
+            scope.$apply(function(){ scope.$emit('drag.started',{obj: scope.obj}); });
+          },
+          drag: function(evt){
+            scope.$apply(function(){ scope.$emit('drag.dragging',{obj: scope.obj}); });
+          },
+          stop: function(evt,ui){
+            if(scope.placeholder)
+              ui.helper.unwrap();
+            scope.$apply(function(){ scope.$emit('drag.stopped',{obj: scope.obj}); });
+          }
+        };
+      
+        // combine options passed through element attributes with events
+        var options = angular.extend({},opts,evts);
+        el.draggable(options); // make element draggable
+    } // end link
+  }; // end return
+}]) // end directive(draggable)
+
+.directive('droppable',['$compile',function($compile){
+  return {
+    restrict: 'AE',
+    replace: true,
+    scope: {},
+    templateUrl: function(el,attrs){
+      return (angular.isDefined(attrs.template)) ? attrs.template : '/tmpls/droppable-default';
+    },
+    link: function(scope,el,attrs,ctrlr,transFn){
+      scope.obj = {
+        id: null,
+        dropped: []
+      };
+      
+      // save the object's id if there is one
+      if(angular.isDefined(attrs.id))
+        scope.obj.id = attrs.id;
+      
+      // setup the options object to pass to jQuery UI's draggable method
+      var opts = (angular.isDefined(attrs.options)) ? scope.$eval(attrs.options) : {};
+      
+      var evts = {
+        drop: function(evt,ui){ // apply content
+          scope.$apply(function(){
+            scope.obj.dropped.push(angular.copy(scope.$parent.obj));
+            scope.$emit('data.clean');
+          });
+        }
+      };
+      
+      var options = angular.extend({},opts,evts);
+      el.droppable(options);
+    } // end link
+     
+  }; // end return
+}]); // end directive(droppable)
+
+
+    </script>
+    
+  </body>
+</html>
