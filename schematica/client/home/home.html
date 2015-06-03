@@ -1,5 +1,6 @@
 <template name="home">
   {{>navigation}}
+
   <div class="container-fluid schema">
     <div class='working'>
       {{>postsList}}
@@ -7,6 +8,17 @@
     {{#each positions}}
       {{>position}}
     {{/each}}
+    {{>drawingSurface}}
   </div>
 
+</template>
+
+<template name="drawingSurface">
+  <input class='clearButton' type='button' value='Clear'/>
+  <h2>Loading...</h2>
+  {{> canvas}}
+</template>
+
+<template name="canvas">
+  <div height="700px" id='canvas'></div>
 </template>

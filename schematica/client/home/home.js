@@ -138,7 +138,7 @@ var markPoint = function() {
 // also establish a reactive context, but we're not using that
 // here.
 Template.canvas.events({
-  'click': function (event) {
+  'dblclick': function (event) {
     markPoint();
   },
   'mousedown': function (event) {

@@ -8,3 +8,4 @@ Meteor.methods({
     points.remove({});
   }
 })
+
