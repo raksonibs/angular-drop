@@ -86,19 +86,11 @@ Meteor.startup( function() {
   Deps.autorun( function() {
     var data = points.find({}).fetch();
     $('h2').hide();
-    if (canvas) {
+    if (canvas) {      
       canvas.draw(data);
     }
   });
 });
-
-// Totally unnecessary, but used to illustrate how
-// template helpers work. By calling in {{title}}
-// in our template (see below), we write out
-// the title of our app.
-Template.drawingSurface.title = function () {
-  return 'Draw with Me!';
-}
 
 // Declares an events hash of all events scoped to
 // a particular template. Here we're handling the click
