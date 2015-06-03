@@ -9,11 +9,16 @@ Template.postsList.helpers({
   posts: codeTables
 })
 
+Template.postsList.editing_field_post = function(){
+  return Session.equals('editing_field_post',this._id)
+};
+
 Template.postsList.events({
-  'click .icon-lock':function(evt,tmpl){
-    evt.stopPropagation();
-    evt.preventDefault();
-    Session.set('editing_field',this._id);
+  'click .can_change':function(evt,tmpl){
+    console.log('fire event')
+    // evt.stopPropagation();
+    // evt.preventDefault();
+    Session.set('editing_field_post',1);
   },
   'keyup .efield':function(evt,tmpl){
     evt.stopPropagation();
@@ -21,7 +26,11 @@ Template.postsList.events({
     var fieldname = tmpl.find('.efield').value;
     if(fieldname && evt.which == 13){
       DBfields.update(this._id,{$set:{name:fieldname}});
-      Session.set('editing_field',null);
+      Session.set('editing_field_post',null);
     }
   }
 });
+
+Template.postsList.editing_field_post = function(){
+  return Session.equals('editing_field_post',this._id);
+};

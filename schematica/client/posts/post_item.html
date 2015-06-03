@@ -1,7 +1,13 @@
 <template name="postItem">
   <div class="post">
-    <div style="position:absolute;left:{{left}};top:{{top}};width:200px;" class="modal">
-      <h3>{{name}} <br><span class="can_change"><pre>{{desc}}</pre></span></h3>
+    <div id="1" style="position:absolute;left:{{left}};top:{{top}};width:200px;" class="modal">
+    {{#if editing_field_post}}
+      <p> can change </p>
+      <input class="input input-medium tablename" value="{{desc}}" type="text"/>
+      {{else}}
+      <button class="can_change"> can't change </button>
+      <h3>{{name}} <br><span><pre>{{desc}}</pre></span></h3>
+      {{/if}}
     </div>
   </div>
 </template>
