@@ -57,7 +57,6 @@ function Canvas() {
 
 // This is our actual points collection. It's stored in an 
 //internal mongo database.
-points = new Meteor.Collection('pointsCollection');
 
 // This function will publish a named subscription of points
 // that the client can then subscribe to. It returns all points
@@ -70,11 +69,6 @@ Template.home.points = function () {
 // remotely call, which simply removes all of the points
 // from the database. This is necessary because only the server
 // may remove multiple documents at once.
-Meteor.methods({
-  'clear': function () {
-    points.remove({});
-  }
-});
 
 // Just a reference for our canvas.
 var canvas;
@@ -113,8 +107,13 @@ Template.drawingSurface.events({
   'click input': function (event) {
     Meteor.call('clear', function() {
       canvas.clear();
-    });
-  }
+    })
+  },
+
+  'click .clearButton': function (evt, tmpl) {
+      canvas.clear();
+      points.remove({});
+    }
 })
 
 // Just some DRY for inserting a point into the points 
