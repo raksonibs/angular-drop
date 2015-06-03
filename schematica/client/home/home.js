@@ -103,6 +103,13 @@ Template.drawingSurface.title = function () {
 // Declares an events hash of all events scoped to
 // a particular template. Here we're handling the click
 // event on the clear button.
+
+Meteor.methods({
+  'removeAll' : function (value) {
+    points.remove({});
+  }
+})
+
 Template.drawingSurface.events({
   'click input': function (event) {
     Meteor.call('clear', function() {
@@ -111,8 +118,9 @@ Template.drawingSurface.events({
   },
 
   'click .clearButton': function (evt, tmpl) {
+      console.log('delete')
       canvas.clear();
-      points.remove({});
+      Meteor.call('removeAll');
     }
 })
 
