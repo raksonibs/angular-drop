@@ -1,0 +1,3 @@
+- layers: peter's changes, oskar's changes
+- start with code already, and image
+- add comments plus drawing

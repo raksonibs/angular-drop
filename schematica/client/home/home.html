@@ -1,6 +1,9 @@
 <template name="home">
   {{>navigation}}
   <div class="container-fluid schema">
+    <div class='working'>
+      {{>postsList}}
+    </div>
     {{#each positions}}
       {{>position}}
     {{/each}}

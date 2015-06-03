@@ -10,6 +10,11 @@ Template.home.events ({
     }
   }
 });
+
+Template.home.codeTable = function () {
+  return CodeTables.find()
+}
+
 Template.home.positions = function () {
   return Positions.find();
 }
