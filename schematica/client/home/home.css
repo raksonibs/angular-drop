@@ -7,3 +7,7 @@
   height: 700px;
   width: 50%;
 }
+
+svg {
+  max-height: 600px;
+}

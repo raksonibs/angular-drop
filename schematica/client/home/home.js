@@ -145,3 +145,150 @@ Template.canvas.events({
     }
   }
 });
+
+var ns = "http://www.w3.org/2000/svg";
+var cube;
+
+window.onload = function () {
+  // Create svg element
+  var svg = document.createElementNS( ns, "svg");
+  var vbsize = 4;
+  svg.setAttribute("viewBox", -vbsize/2 + " " + -vbsize/2 + " " + vbsize + " " + vbsize); 
+
+  // And add it to the document
+  document.body.appendChild(svg);
+
+  // Define 3D object
+  cube = Cube();
+  var x = cube.init();
+  svg.appendChild ( x );
+
+  window.setInterval ( loop, 1000/60);
+}
+
+function loop () {
+  cube.step();
+}
+
+var Cube = function () {
+  var vertices, edges;
+
+  var group; // reference to svg collection of lines (2D rendered edges)
+
+  var init = function(){
+    defGeometry();
+
+    // Create svg (edges)
+
+    group = document.createElementNS(ns, "g");
+    group.setAttributeNS(null,"stroke", 'black');
+    group.setAttributeNS(null,"stroke-width", 0.01);
+
+    var persp = perspective();
+
+    for ( var i = 0; i < edges.length; i++ ) {
+      group.appendChild ( createEdge ( persp[edges[i][0]][0], persp[edges[i][0]][1], persp[edges[i][1]][0], persp[edges[i][1]][1]));
+    }
+
+    return group;
+  };
+
+  var defGeometry = function () {
+    vertices = [
+      [1,1,1],
+      [1,1,-1],
+      [-1,1,-1],
+      [-1,1,1],
+      [1,-1,1],
+      [1,-1,-1],
+      [-1,-1,-1],
+      [-1,-1,1]
+    ];
+
+    edges = [
+      [0,1], [1,2], [2,3], [3,0],
+      [4,5], [5,6], [6,7], [7,4],
+      [0,4], [1,5], [2,6], [3,7]
+    ];
+  }
+
+  var rotateY = function( p, angle) {
+    // z' = z*cos q - x*sin q
+    // x' = z*sin q + x*cos q
+    // y' = y
+
+    var x,y,z;
+    z = p[2]*Math.cos(angle) - p[0]*Math.sin(angle);
+    x = p[2]*Math.sin(angle) + p[0]*Math.cos(angle);
+    p[0] = x;
+    p[2] = z;
+  }
+
+  var rotateX = function( p, angle) {
+    var x,y,z;
+    y = p[1]*Math.cos(angle) - p[2]*Math.sin(angle);
+    z = p[1]*Math.sin(angle) + p[2]*Math.cos(angle);
+    p[1] = y;
+    p[2] = z;
+  } 
+
+  var perspective = function () {
+    // Perspective test:
+    // Shrink x and y, when z is large
+    var persp = [];
+    var z0 = -8, // Must be smaller than any z (or what?)
+        z1 = 0,
+        z, v, f;
+
+    for (var i = 0; i < vertices.length; i++) {
+      v = vertices[i];
+      z = v[2];
+      // Scale x,y according to the value of z
+      f = (z1-z0)/(z-z0);
+      persp.push([v[0]*f, v[1]*f]);
+    };        
+
+    return persp;
+  }
+
+  var step = function() {
+    // Update vertices, like rotate em round y-axis
+    var q = Math.PI/201;
+    for (var i = 0; i < vertices.length; i++) {
+      rotateY ( vertices[i], q);
+    };
+    // Ok, a bit around x too, then
+    var q = Math.PI/301;
+    for (var i = 0; i < vertices.length; i++) {
+      rotateX ( vertices[i], q);
+    };
+
+    var persp = perspective();
+
+    // Redraw svg by moving vertices line by line 
+    for (var i = 0; i < edges.length; i++) {
+      // Get line nr. i
+      var line = group.childNodes[i];
+      line.setAttributeNS(null,"x1", persp[edges[i][0]][0]);
+      line.setAttributeNS(null,"y1", persp[edges[i][0]][1]);
+      line.setAttributeNS(null,"x2", persp[edges[i][1]][0]);
+      line.setAttributeNS(null,"y2", persp[edges[i][1]][1]);
+    }; 
+  };
+
+  return {
+    init: init,
+    step: step
+  };
+};  
+
+function createEdge (x1, y1, x2, y2 ) {
+  var elem = document.createElementNS(ns, "line");
+
+  elem.setAttributeNS(null,"x1", x1);
+  elem.setAttributeNS(null,"y1", y1);
+  elem.setAttributeNS(null,"x2", x2);
+  elem.setAttributeNS(null,"y2", y2);
+
+  return elem;
+} 

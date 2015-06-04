@@ -1,8 +1,8 @@
 var codeTables = [{
-  name: 'Test',
+  name: "Peter's code",
   left: '500px',
   top: '100px',
-  desc: 'if y == x puts ten',
+  desc: "if ( y == x )           puts 'drink'",
   url: ''
 }]
 
